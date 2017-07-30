@@ -25,6 +25,7 @@
 
     <artifactId>axon-core</artifactId>
     <name>Axon Framework core</name>
+    <version>3.0.6ssp</version>
 
     <packaging>bundle</packaging>
 

@@ -16,6 +16,8 @@
 
 package org.axonframework.messaging.annotation;
 
+import org.axonframework.serviceregistry.ServiceRegistry;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -98,10 +100,10 @@ public class AnnotatedHandlerInspector<T> {
     }
 
     private void initializeMessageHandlers(ParameterResolverFactory parameterResolverFactory) {
-        List<HandlerDefinition> definitions = new ArrayList<>();
-        ServiceLoader.load(HandlerDefinition.class).forEach(definitions::add);
-        List<HandlerEnhancerDefinition> wrapperDefinitions = new ArrayList<>();
-        ServiceLoader.load(HandlerEnhancerDefinition.class).forEach(wrapperDefinitions::add);
+        List<HandlerDefinition> definitions = ServiceRegistry.get().getHandlerDefinitions();
+        //ServiceLoader.load(HandlerDefinition.class).forEach(definitions::add);
+        List<HandlerEnhancerDefinition> wrapperDefinitions = ServiceRegistry.get().getHandlerEnhancerDefinitions();
+        //ServiceLoader.load(HandlerEnhancerDefinition.class).forEach(wrapperDefinitions::add);
         for (Method method : inspectedType.getDeclaredMethods()) {
             definitions.forEach(definition -> definition.createHandler(inspectedType, method, parameterResolverFactory)
                     .ifPresent(handler -> registerHandler(wrapped(handler, wrapperDefinitions))));

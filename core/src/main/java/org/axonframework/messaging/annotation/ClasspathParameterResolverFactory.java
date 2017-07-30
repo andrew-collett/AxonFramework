@@ -16,6 +16,7 @@
 
 package org.axonframework.messaging.annotation;
 
+import org.axonframework.serviceregistry.ServiceRegistry;
 import org.slf4j.LoggerFactory;
 
 import java.lang.ref.WeakReference;
@@ -83,8 +84,9 @@ public final class ClasspathParameterResolverFactory {
     }
 
     private static List<ParameterResolverFactory> findDelegates(ClassLoader classLoader) {
-        Iterator<ParameterResolverFactory> iterator = load(ParameterResolverFactory.class, classLoader == null ?
-                Thread.currentThread().getContextClassLoader() : classLoader).iterator();
+        Iterator<ParameterResolverFactory> iterator = ServiceRegistry.get().getParameterResolverFactories().iterator();
+//        Iterator<ParameterResolverFactory> iterator = load(ParameterResolverFactory.class, classLoader == null ?
+//                Thread.currentThread().getContextClassLoader() : classLoader).iterator();
         //noinspection WhileLoopReplaceableByForEach
         final List<ParameterResolverFactory> factories = new ArrayList<>();
         while (iterator.hasNext()) {

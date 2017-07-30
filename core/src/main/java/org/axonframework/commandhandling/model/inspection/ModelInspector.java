@@ -25,6 +25,7 @@ import org.axonframework.common.annotation.AnnotationUtils;
 import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.messaging.Message;
 import org.axonframework.messaging.annotation.*;
+import org.axonframework.serviceregistry.ServiceRegistry;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -128,8 +129,8 @@ public class ModelInspector<T> implements AggregateModel<T> {
     }
 
     private void inspectFields() {
-        ServiceLoader<ChildEntityDefinition> childEntityDefinitions =
-                ServiceLoader.load(ChildEntityDefinition.class, inspectedType.getClassLoader());
+        List<ChildEntityDefinition> childEntityDefinitions =
+                ServiceRegistry.get().getChildEntityDefinitions();
         for (Field field : ReflectionUtils.fieldsOf(inspectedType)) {
             childEntityDefinitions.forEach(def -> def.createChildDefinition(field, this).ifPresent(child -> {
                 children.add(child);
