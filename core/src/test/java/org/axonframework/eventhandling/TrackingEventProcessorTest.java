@@ -307,9 +307,6 @@ public class TrackingEventProcessorTest {
 
     @Test
     public void testEventProcessorIsReEntrant() throws Exception {
-        testSubject.start();
-        assertTrue("TrackingEventProcessor is not started", testSubject.getState() == TrackingEventProcessor.State.STARTED);
-        testSubject.shutDown();
 
         testSubject.start();
         CountDownLatch countDownLatch2 = new CountDownLatch(2);
@@ -317,8 +314,10 @@ public class TrackingEventProcessorTest {
             countDownLatch2.countDown();
             return null;
         }).when(mockListener).handle(any());
+
         eventBus.publish(createEvents(2));
         assertTrue("Expected listener to have received 2 published events", countDownLatch2.await(5, TimeUnit.SECONDS));
+
     }
 
 }

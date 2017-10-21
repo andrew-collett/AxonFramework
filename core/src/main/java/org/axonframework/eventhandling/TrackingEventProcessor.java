@@ -106,7 +106,7 @@ public class TrackingEventProcessor extends AbstractEventProcessor {
                                   StreamableMessageSource<TrackedEventMessage<?>> messageSource, TokenStore tokenStore,
                                   TransactionManager transactionManager, int batchSize) {
         this(name, eventHandlerInvoker, RollbackConfigurationType.ANY_THROWABLE, PropagatingErrorHandler.INSTANCE,
-             messageSource, tokenStore, transactionManager, batchSize, NoOpMessageMonitor.INSTANCE);
+                messageSource, tokenStore, transactionManager, batchSize, NoOpMessageMonitor.INSTANCE);
     }
 
     /**
@@ -128,7 +128,7 @@ public class TrackingEventProcessor extends AbstractEventProcessor {
                                   TransactionManager transactionManager,
                                   MessageMonitor<? super EventMessage<?>> messageMonitor) {
         this(name, eventHandlerInvoker, RollbackConfigurationType.ANY_THROWABLE, PropagatingErrorHandler.INSTANCE,
-             messageSource, tokenStore, transactionManager, 1, messageMonitor);
+                messageSource, tokenStore, transactionManager, 1, messageMonitor);
     }
 
     /**
@@ -223,7 +223,7 @@ public class TrackingEventProcessor extends AbstractEventProcessor {
                     errorWaitTime = 5;
                     waitFor(errorWaitTime);
                 } catch (Exception e) {
-                    // make sure to start with a clean event stream. The exception may have cause an illegal state
+                    // make sure to start with a clean event stream. The exception may have caused an illegal state
                     if (errorWaitTime == 1) {
                         logger.warn("Error occurred. Starting retry mode.", e);
                     }
