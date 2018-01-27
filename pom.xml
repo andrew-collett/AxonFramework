@@ -18,11 +18,7 @@
 
     <groupId>org.axonframework</groupId>
     <artifactId>axon</artifactId>
-<<<<<<< HEAD
     <version>3.0.6ssp</version>
-=======
-    <version>3.1-SNAPSHOT</version>
->>>>>>> axonframework/master
     <modules>
         <module>core</module>
         <module>spring</module>
