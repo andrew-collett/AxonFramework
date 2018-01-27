@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2017. Axon Framework
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +28,8 @@ import org.axonframework.messaging.Message;
 import org.axonframework.messaging.annotation.ParameterResolverFactory;
 import org.axonframework.messaging.correlation.CorrelationDataProvider;
 import org.axonframework.monitoring.MessageMonitor;
+import org.axonframework.queryhandling.QueryBus;
+import org.axonframework.queryhandling.QueryGateway;
 import org.axonframework.serialization.Serializer;
 import org.axonframework.serialization.upcasting.event.EventUpcasterChain;
 
@@ -75,6 +78,10 @@ public interface Configuration {
         return getComponent(CommandBus.class);
     }
 
+    default QueryBus queryBus() {
+        return getComponent(QueryBus.class);
+    }
+
     /**
      * Returns the ResourceInjector used to provide resources to Saga instances.
      *
@@ -94,6 +101,15 @@ public interface Configuration {
         return getComponent(CommandGateway.class);
     }
 
+    /**
+     * Returns the Query Gateway defined in this Configuration. Note that this Configuration should be started (see
+     * {@link #start()}) before sending Queries using this Query Gateway.
+     *
+     * @return the QueryGateway defined in this configuration
+     */
+    default QueryGateway queryGateway() {
+        return getComponent(QueryGateway.class);
+    }
     /**
      * Returns the Repository configured for the given {@code aggregateType}.
      *
@@ -147,6 +163,22 @@ public interface Configuration {
     default Serializer serializer() {
         return getComponent(Serializer.class);
     }
+
+    /**
+     * Returns the {@link Serializer} defined in this Configuration to be used for serializing Event Message payload
+     * and their metadata.
+     *
+     * @return the event serializer defined in this Configuration.
+     */
+    Serializer eventSerializer();
+
+    /**
+     * Returns the {@link Serializer} defined in this Configuration to be used for serializing Message payloads and
+     * metadata.
+     *
+     * @return the message serializer defined in this Configuration.
+     */
+    Serializer messageSerializer();
 
     /**
      * Starts this configuration. All components defined in this Configuration will be started.

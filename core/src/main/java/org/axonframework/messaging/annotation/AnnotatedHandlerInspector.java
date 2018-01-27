@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2016. Axon Framework
+ * Copyright (c) 2010-2017. Axon Framework
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public class AnnotatedHandlerInspector<T> {
      * @param <T>         the handler's type
      * @return a new inspector instance for the inspected class
      */
-    public static <T> AnnotatedHandlerInspector<T> inspectType(Class<T> handlerType) {
+    public static <T> AnnotatedHandlerInspector<T> inspectType(Class<? extends T> handlerType) {
         return inspectType(handlerType, ClasspathParameterResolverFactory.forClass(handlerType));
     }
 
@@ -68,7 +68,7 @@ public class AnnotatedHandlerInspector<T> {
      * @param <T>                      the handler's type
      * @return a new inspector instance for the inspected class
      */
-    public static <T> AnnotatedHandlerInspector<T> inspectType(Class<T> handlerType,
+    public static <T> AnnotatedHandlerInspector<T> inspectType(Class<? extends T> handlerType,
                                                                ParameterResolverFactory parameterResolverFactory) {
         return createInspector(handlerType, parameterResolverFactory, new HashMap<>());
     }
@@ -77,9 +77,11 @@ public class AnnotatedHandlerInspector<T> {
     private static <T> AnnotatedHandlerInspector<T> createInspector(Class<? extends T> inspectedType,
                                                                     ParameterResolverFactory parameterResolverFactory,
                                                                     Map<Class<?>, AnnotatedHandlerInspector> registry) {
+        if (!registry.containsKey(inspectedType)) {
+            registry.put(inspectedType, AnnotatedHandlerInspector.initialize(inspectedType, parameterResolverFactory, registry));
+        }
         //noinspection unchecked
-        return registry.computeIfAbsent(inspectedType, k -> AnnotatedHandlerInspector
-                .initialize(inspectedType, parameterResolverFactory, registry));
+        return registry.get(inspectedType);
     }
 
     private static <T> AnnotatedHandlerInspector<T> initialize(Class<T> inspectedType,

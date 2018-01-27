@@ -17,18 +17,20 @@ package org.axonframework.boot;
 
 import org.axonframework.commandhandling.CommandBus;
 import org.axonframework.commandhandling.SimpleCommandBus;
+import org.axonframework.commandhandling.distributed.AnnotationRoutingStrategy;
 import org.axonframework.commandhandling.distributed.CommandBusConnector;
 import org.axonframework.commandhandling.distributed.CommandRouter;
 import org.axonframework.commandhandling.distributed.DistributedCommandBus;
+import org.axonframework.commandhandling.distributed.RoutingStrategy;
 import org.axonframework.commandhandling.gateway.AbstractCommandGateway;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.commandhandling.gateway.DefaultCommandGateway;
 import org.axonframework.eventhandling.EventBus;
 import org.axonframework.serialization.Serializer;
-import org.axonframework.springcloud.commandhandling.SpringCloudCommandRouter;
+import org.axonframework.springcloud.commandhandling.SpringCloudHttpBackupCommandRouter;
 import org.axonframework.springcloud.commandhandling.SpringHttpCommandBusConnector;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.*;
+import org.junit.runner.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -48,11 +50,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.client.RestTemplate;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 
 @ContextConfiguration(classes = AxonAutoConfigurationWithSpringCloudTest.TestContext.class)
-@EnableAutoConfiguration(exclude = {JmxAutoConfiguration.class, WebClientAutoConfiguration.class, HibernateJpaAutoConfiguration.class, DataSourceAutoConfiguration.class})
+@EnableAutoConfiguration(exclude = {JmxAutoConfiguration.class,
+        WebClientAutoConfiguration.class,
+        HibernateJpaAutoConfiguration.class,
+        DataSourceAutoConfiguration.class})
 @TestPropertySource("classpath:test.springcloud.application.properties")
 @RunWith(SpringRunner.class)
 public class AxonAutoConfigurationWithSpringCloudTest {
@@ -68,6 +73,9 @@ public class AxonAutoConfigurationWithSpringCloudTest {
     private CommandBus commandBus;
 
     @Autowired
+    private RoutingStrategy routingStrategy;
+
+    @Autowired
     private CommandRouter commandRouter;
     @Autowired
     private CommandBusConnector commandBusConnector;
@@ -76,8 +84,11 @@ public class AxonAutoConfigurationWithSpringCloudTest {
     public void testContextInitialization() throws Exception {
         assertNotNull(applicationContext);
 
-        assertNotNull(applicationContext.getBean(SpringCloudCommandRouter.class));
-        assertEquals(SpringCloudCommandRouter.class, commandRouter.getClass());
+        assertNotNull(applicationContext.getBean(RoutingStrategy.class));
+        assertEquals(AnnotationRoutingStrategy.class, routingStrategy.getClass());
+
+        assertNotNull(applicationContext.getBean(SpringCloudHttpBackupCommandRouter.class));
+        assertEquals(SpringCloudHttpBackupCommandRouter.class, commandRouter.getClass());
 
         assertNotNull(applicationContext.getBean(SpringHttpCommandBusConnector.class));
         assertEquals(SpringHttpCommandBusConnector.class, commandBusConnector.getClass());
@@ -110,7 +121,5 @@ public class AxonAutoConfigurationWithSpringCloudTest {
         public DiscoveryClient discoveryClient() {
             return new NoopDiscoveryClient(new DefaultServiceInstance("TestServiceId", "localhost", 12345, true));
         }
-
     }
-
 }

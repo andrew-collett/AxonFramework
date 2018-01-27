@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2017. Axon Framework
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,8 +17,12 @@
 package org.axonframework.config;
 
 import org.axonframework.common.Registration;
+import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.eventhandling.EventMessage;
 import org.axonframework.eventhandling.EventProcessor;
+import org.axonframework.eventhandling.GenericEventMessage;
+import org.axonframework.eventhandling.tokenstore.inmemory.InMemoryTokenStore;
+import org.axonframework.eventsourcing.eventstore.inmemory.InMemoryEventStorageEngine;
 import org.axonframework.messaging.InterceptorChain;
 import org.axonframework.messaging.MessageHandlerInterceptor;
 import org.axonframework.messaging.interceptors.CorrelationDataInterceptor;
@@ -30,6 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -106,6 +113,33 @@ public class EventHandlingConfigurationTest {
     }
 
     @Test
+    public void testDefaultAssignToKeepsAnnotationScanning() {
+        Map<String, StubEventProcessor> processors = new HashMap<>();
+        EventHandlingConfiguration module = new EventHandlingConfiguration()
+                .registerEventProcessorFactory((config, name, handlers) -> {
+                    StubEventProcessor processor = new StubEventProcessor(name, handlers);
+                    processors.put(name, processor);
+                    return processor;
+                });
+        AnnotatedBean annotatedBean = new AnnotatedBean();
+        Object object = new Object();
+
+        module.assignHandlersMatching("java.util.concurrent", "concurrent"::equals);
+        module.byDefaultAssignTo("default");
+        module.registerEventHandler(c -> object);        // --> default
+        module.registerEventHandler(c -> "concurrent");  // --> java.util.concurrent
+        module.registerEventHandler(c -> annotatedBean); // --> processingGroup
+        configurer.registerModule(module);
+        Configuration config = configurer.start();
+
+        assertEquals(3, processors.size());
+        assertTrue(processors.get("default").getEventHandlers().contains(object));
+        assertTrue(processors.get("java.util.concurrent").getEventHandlers().contains("concurrent"));
+        assertTrue(processors.get("processingGroup").getEventHandlers().contains(annotatedBean));
+        assertEquals(1, config.getModules().size());
+    }
+
+    @Test
     public void testAssignInterceptors() {
         EventHandlingConfiguration module = new EventHandlingConfiguration()
                 .usingTrackingProcessors()
@@ -128,6 +162,44 @@ public class EventHandlingConfigurationTest {
         // CorrelationDataInterceptor is automatically configured
         assertEquals(3, ((StubEventProcessor)module.getProcessor("default").get()).getInterceptors().size());
         assertEquals(1, config.getModules().size());
+    }
+
+    @Test
+    public void testConfigureMonitor() throws Exception {
+        MessageCollectingMonitor subscribingMonitor = new MessageCollectingMonitor();
+        MessageCollectingMonitor trackingMonitor = new MessageCollectingMonitor(1);
+
+        // Use InMemoryEventStorageEngine so tracking processors don't miss events
+        configurer.configureEmbeddedEventStore(c -> new InMemoryEventStorageEngine());
+        CountDownLatch tokenStoreInvocation = new CountDownLatch(1);
+        EventHandlingConfiguration module = new EventHandlingConfiguration()
+                .registerSubscribingEventProcessor("subscribing")
+                .registerTrackingProcessor("tracking")
+                .configureMessageMonitor("subscribing", c -> subscribingMonitor)
+                .configureMessageMonitor("tracking", c -> trackingMonitor)
+                .assignHandlersMatching("subscribing", eh -> eh.getClass().isAssignableFrom(SubscribingEventHandler.class))
+                .assignHandlersMatching("tracking", eh -> eh.getClass().isAssignableFrom(TrackingEventHandler.class))
+                .registerEventHandler(c -> new SubscribingEventHandler())
+                .registerEventHandler(c -> new TrackingEventHandler())
+                .registerTokenStore("tracking", c-> new InMemoryTokenStore() {
+                    @Override
+                    public int[] fetchSegments(String processorName) {
+                        tokenStoreInvocation.countDown();
+                        return super.fetchSegments(processorName);
+                    }
+                });
+        configurer.registerModule(module);
+        Configuration config = configurer.start();
+
+        try {
+            config.eventBus().publish(new GenericEventMessage<Object>("test"));
+            
+            assertEquals(1, subscribingMonitor.getMessages().size());
+            assertTrue(trackingMonitor.await(10, TimeUnit.SECONDS));
+            assertTrue(tokenStoreInvocation.await(10, TimeUnit.SECONDS));
+        } finally {
+            config.shutdown();
+        }
     }
 
     private static class StubEventProcessor implements EventProcessor {
@@ -185,4 +257,18 @@ public class EventHandlingConfigurationTest {
             return interceptorChain.proceed();
         }
     }
+
+    @ProcessingGroup("subscribing")
+    private class SubscribingEventHandler {
+    }
+
+    @ProcessingGroup("tracking")
+    private class TrackingEventHandler {
+
+        @EventHandler
+        public void handle(String event) {
+
+        }
+    }
+
 }

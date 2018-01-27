@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2010-2017. Axon Framework
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +28,10 @@ import org.axonframework.eventhandling.saga.ResourceInjector;
 import org.axonframework.messaging.Message;
 import org.axonframework.messaging.correlation.CorrelationDataProvider;
 import org.axonframework.monitoring.MessageMonitor;
+import org.axonframework.queryhandling.DefaultQueryGateway;
+import org.axonframework.queryhandling.QueryBus;
+import org.axonframework.queryhandling.QueryGateway;
+import org.axonframework.serialization.Serializer;
 import org.axonframework.serialization.upcasting.event.EventUpcasterChain;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -52,23 +57,43 @@ public class AxonConfiguration implements Configuration, InitializingBean, Appli
     /**
      * Initializes a new {@link AxonConfiguration} that uses the given {@code configurer} to build the configuration.
      *
-     * @param configurer configuration builder for the AxonConfiguration
+     * @param configurer Configuration builder for the AxonConfiguration.
      */
     public AxonConfiguration(Configurer configurer) {
         this.configurer = configurer;
     }
 
-    @NoBeanOfType(CommandBus.class)
-    @Bean
+    @Override
     public CommandBus commandBus() {
         return config.commandBus();
     }
 
-    @NoBeanOfType(EventBus.class)
-    @Bean
+    @Override
+    public QueryBus queryBus() {
+        return config.queryBus();
+    }
+
     @Override
     public EventBus eventBus() {
         return config.eventBus();
+    }
+
+    @NoBeanOfType(QueryBus.class)
+    @Bean("queryBus")
+    public QueryBus defaultQueryBus() {
+        return config.queryBus();
+    }
+
+    @NoBeanOfType(CommandBus.class)
+    @Bean("commandBus")
+    public CommandBus defaultCommandBus() {
+        return commandBus();
+    }
+
+    @NoBeanOfType(EventBus.class)
+    @Bean("eventBus")
+    public EventBus defaultEventBus() {
+        return eventBus();
     }
 
     @Override
@@ -88,6 +113,12 @@ public class AxonConfiguration implements Configuration, InitializingBean, Appli
         return new DefaultCommandGateway(commandBus);
     }
 
+    @NoBeanOfType(QueryGateway.class)
+    @Bean
+    public QueryGateway queryGateway(QueryBus queryBus) {
+        return new DefaultQueryGateway(queryBus);
+    }
+
     @Override
     public <T> Repository<T> repository(Class<T> aggregateType) {
         return config.repository(aggregateType);
@@ -101,6 +132,16 @@ public class AxonConfiguration implements Configuration, InitializingBean, Appli
     @Override
     public <M extends Message<?>> MessageMonitor<? super M> messageMonitor(Class<?> componentType, String componentName) {
         return config.messageMonitor(componentType, componentName);
+    }
+
+    @Override
+    public Serializer eventSerializer() {
+        return config.eventSerializer();
+    }
+
+    @Override
+    public Serializer messageSerializer() {
+        return config.messageSerializer();
     }
 
     @Override
@@ -168,7 +209,7 @@ public class AxonConfiguration implements Configuration, InitializingBean, Appli
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         config = configurer.buildConfiguration();
     }
 
