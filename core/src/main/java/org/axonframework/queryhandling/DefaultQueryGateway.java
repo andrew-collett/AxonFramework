@@ -62,9 +62,9 @@ public class DefaultQueryGateway implements QueryGateway {
     @SuppressWarnings("unchecked")
     private <C, R> QueryMessage<? extends C, R> processInterceptors(QueryMessage<C, R> queryMessage) {
         QueryMessage<? extends C, R> message = queryMessage;
-        for (MessageDispatchInterceptor<? super QueryMessage<?, ?>> dispatchInterceptor : dispatchInterceptors) {
-            message = (QueryMessage<? extends C, R>) dispatchInterceptor.handle(message);
-        }
+//        for (MessageDispatchInterceptor<? super QueryMessage<?, ?>> dispatchInterceptor : dispatchInterceptors) {
+//            message = (QueryMessage<? extends C, R>) dispatchInterceptor.handle(message);
+//        }
         return message;
     }
 
