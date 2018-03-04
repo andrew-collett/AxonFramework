@@ -49,6 +49,7 @@
                         </Export-Package>
                         <Import-Package>
                             org.slf4j.*,
+                            !javax.annotation,
                             *;resolution:=optional
                         </Import-Package>
                     </instructions>

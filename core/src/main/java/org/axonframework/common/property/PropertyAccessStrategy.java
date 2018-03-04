@@ -17,9 +17,6 @@
 package org.axonframework.common.property;
 
 import java.util.Iterator;
-import java.util.ServiceLoader;
-import java.util.SortedSet;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 
 /**
@@ -43,16 +40,20 @@ import java.util.concurrent.ConcurrentSkipListSet;
  */
 public abstract class PropertyAccessStrategy implements Comparable<PropertyAccessStrategy> {
 
-    private static final ServiceLoader<PropertyAccessStrategy> LOADER =
-            ServiceLoader.load(PropertyAccessStrategy.class);
 
-    private static final SortedSet<PropertyAccessStrategy> STRATEGIES = new ConcurrentSkipListSet<>();
+    /**
+     * Replace direct ServiceLoader with static ServiceRegistry to enable OSGi usage
+     */
+    //private static final ServiceLoader<PropertyAccessStrategy> LOADER =
+    //        ServiceLoader.load(PropertyAccessStrategy.class);
 
-    static {
-        for (PropertyAccessStrategy factory : LOADER) {
-            STRATEGIES.add(factory);
-        }
-    }
+    //private static final SortedSet<PropertyAccessStrategy> STRATEGIES = new ConcurrentSkipListSet<>();
+
+//    static {
+//        for (PropertyAccessStrategy factory : ServiceRegistry.get().getPropertyAccessStrategies()) {
+//            STRATEGIES.add(factory);
+//        }
+//    }
 
     /**
      * Registers a PropertyAccessStrategy implementation at runtime.
@@ -61,7 +62,7 @@ public abstract class PropertyAccessStrategy implements Comparable<PropertyAcces
      * @param strategy implementation to register
      */
     public static void register(PropertyAccessStrategy strategy) {
-        STRATEGIES.add(strategy);
+        PropertyAccessStrategies.STRATEGIES.add(strategy);
     }
 
     /**
@@ -70,7 +71,7 @@ public abstract class PropertyAccessStrategy implements Comparable<PropertyAcces
      * @param strategy The strategy instance to unregister
      */
     public static void unregister(PropertyAccessStrategy strategy) {
-        STRATEGIES.remove(strategy);
+        PropertyAccessStrategies.STRATEGIES.remove(strategy);
     }
 
     /**
@@ -85,7 +86,7 @@ public abstract class PropertyAccessStrategy implements Comparable<PropertyAcces
      */
     public static <T> Property<T> getProperty(Class<? extends T> targetClass, String propertyName) {
         Property<T> property = null;
-        Iterator<PropertyAccessStrategy> strategies = STRATEGIES.iterator();
+        Iterator<PropertyAccessStrategy> strategies = PropertyAccessStrategies.STRATEGIES.iterator();
         while (property == null && strategies.hasNext()) {
             property = strategies.next().propertyFor(targetClass, propertyName);
         }

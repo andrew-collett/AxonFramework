@@ -24,10 +24,7 @@ import org.axonframework.serialization.ContentTypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.ServiceLoader;
+import java.util.*;
 
 /**
  * An implementation of ServiceAccessor that caches all Service implementations on initialisation
@@ -40,6 +37,7 @@ public class StaticServiceAccessor implements ServiceAccessor {
     private List<HandlerDefinition> handlerDefinitions = new ArrayList<>();
     private List<HandlerEnhancerDefinition> handlerEnhancerDefinitions = new ArrayList<>();
     private List<ParameterResolverFactory> parameterResolverFactories = new ArrayList<>();
+    private List<PropertyAccessStrategy> propertyAccessStrategies = new ArrayList<>();
 
     private static boolean initialized = false;
 
@@ -62,6 +60,9 @@ public class StaticServiceAccessor implements ServiceAccessor {
             ServiceLoader.load(ParameterResolverFactory.class).forEach(parameterResolverFactories::add);
             LOGGER.debug("Registered ParameterResolverFactories:");
             parameterResolverFactories.forEach(def -> LOGGER.info("{}", def.getClass().getSimpleName()));
+            ServiceLoader.load(PropertyAccessStrategy.class).forEach(propertyAccessStrategies::add);
+            LOGGER.debug("Registered PropertyAccessStrategies:");
+            propertyAccessStrategies.forEach(def -> LOGGER.info("{}", def.getClass().getSimpleName()));
             initialized = true;
         }
         catch (Exception ex) {
@@ -80,7 +81,7 @@ public class StaticServiceAccessor implements ServiceAccessor {
 
     @Override
     public List<PropertyAccessStrategy> getPropertyAccessStrategies() {
-        return null;
+        return Collections.unmodifiableList(propertyAccessStrategies);
     }
 
     @Override

@@ -23,6 +23,7 @@ import org.axonframework.messaging.annotation.ParameterResolverFactory;
 import org.axonframework.serialization.ContentTypeConverter;
 
 import java.util.List;
+import java.util.SortedSet;
 
 /**
  * An interface that allows loading of Axon META-INF Service implementations
