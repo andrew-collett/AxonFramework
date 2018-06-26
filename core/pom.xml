@@ -19,15 +19,15 @@
     <parent>
         <groupId>org.axonframework</groupId>
         <artifactId>axon</artifactId>
-        <version>3.2-SNAPSHOT</version>
+        <version>3.2-ssp-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>axon-core</artifactId>
     <name>Axon Framework core</name>
-    <version>3.2-SNAPSHOT</version>
+    <version>3.2-ssp-SNAPSHOT</version>
 
-    <packaging>bundle</packaging>
+    <packaging>jar</packaging>
 
     <build>
         <plugins>
@@ -75,6 +75,11 @@
                         <manifestEntries>
                             <Automatic-Module-Name>org.axonframework.core</Automatic-Module-Name>
                         </manifestEntries>
+                        <!--
+                            The following is needed because bnd-maven-plugin generates the manifest to
+                            target/classes/META-INF/MANIFEST.MF but normal maven-jar-plugin does not use it
+                            -->
+                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
                     </archive>
                 </configuration>
                 <executions>

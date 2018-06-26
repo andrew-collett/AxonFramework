@@ -25,7 +25,7 @@
 
     <groupId>org.axonframework</groupId>
     <artifactId>axon-spring-boot-starter-jgroups</artifactId>
-    <version>3.2-SNAPSHOT</version>
+    <version>3.2-ssp-SNAPSHOT</version>
 
     <name>Spring Boot Starter module for Axon with JGroups Distributed Command Bus</name>
 
@@ -139,18 +139,6 @@
         </plugins>
     </build>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>sonatype</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <uniqueVersion>true</uniqueVersion>
-        </snapshotRepository>
-        <repository>
-            <id>sonatype</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-            <uniqueVersion>false</uniqueVersion>
-        </repository>
-    </distributionManagement>
     <scm>
         <connection>scm:git:git://github.com/AxonFramework/AxonFramework.git</connection>
         <developerConnection>scm:git:git@github.com:AxonFramework/AxonFramework.git</developerConnection>

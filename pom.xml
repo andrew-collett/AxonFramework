@@ -19,7 +19,7 @@
 
     <groupId>org.axonframework</groupId>
     <artifactId>axon</artifactId>
-    <version>3.2-SNAPSHOT</version>
+    <version>3.2-ssp-SNAPSHOT</version>
     <modules>
         <module>core</module>
         <module>spring</module>
@@ -31,8 +31,8 @@
         <module>mongo</module>
         <module>amqp</module>
         <module>metrics</module>
-        <module>spring-boot-starter</module>
-        <module>spring-boot-starter-jgroups</module>
+        <!--<module>spring-boot-starter</module>
+        <module>spring-boot-starter-jgroups</module>-->
         <module>legacy</module>
     </modules>
     <packaging>pom</packaging>
@@ -275,6 +275,22 @@
         </dependencies>
     </dependencyManagement>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>cloudsmith-api</id>
+            <name>Cloudsmith API Releases</name>
+            <url>https://dl.cloudsmith.io/public/cloudsmith/api/maven</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <repositories>
+        <repository>
+            <id>cloudsmith-api</id>
+            <name>Cloudsmith API Releases</name>
+            <url>https://dl.cloudsmith.io/public/cloudsmith/api/maven</url>
+        </repository>
+    </repositories>
+
     <build>
         <pluginManagement>
             <plugins>
@@ -288,6 +304,13 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <extensions>
+            <extension>
+                <groupId>io.cloudsmith.maven.wagon</groupId>
+                <artifactId>cloudsmith-maven-wagon</artifactId>
+                <version>0.3.1</version>
+            </extension>
+        </extensions>
         <plugins>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -414,7 +437,7 @@
     </build>
 
     <!-- deploy and release configuration -->
-    <distributionManagement>
+    <!--<distributionManagement>
         <snapshotRepository>
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -425,7 +448,18 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
             <uniqueVersion>false</uniqueVersion>
         </repository>
+    </distributionManagement>-->
+    <distributionManagement>
+        <snapshotRepository>
+            <id>cloudsmith-snapshots</id>
+            <url>cloudsmith+https://api.cloudsmith.io/andrew-collett/tolrendor-software-maven-snapshot</url>
+        </snapshotRepository>
+        <repository>
+            <id>cloudsmith-releases</id>
+            <url>cloudsmith+https://api.cloudsmith.io/andrew-collett/tolrendor-software-maven</url>
+        </repository>
     </distributionManagement>
+
     <scm>
         <connection>scm:git:git://github.com/AxonFramework/AxonFramework.git</connection>
         <developerConnection>scm:git:git@github.com:AxonFramework/AxonFramework.git</developerConnection>
